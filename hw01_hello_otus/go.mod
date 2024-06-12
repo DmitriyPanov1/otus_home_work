@@ -1,4 +1,4 @@
-module hw01_hello_otus
+module github.com/DmitriyPanov1/otus_home_work/hw01_hello_otus
 
 go 1.22
 
