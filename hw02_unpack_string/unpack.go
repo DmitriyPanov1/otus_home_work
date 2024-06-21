@@ -37,7 +37,6 @@ func Unpack(s string) (string, error) {
 				builder.WriteString(string(r))
 				shield = false
 				isDigitIgnorPrev = true
-				prev = r
 			} else {
 				var res string
 
