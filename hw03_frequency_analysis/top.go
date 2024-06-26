@@ -2,6 +2,7 @@ package hw03frequencyanalysis
 
 import (
 	"sort"
+	"strings"
 	"unicode"
 )
 
@@ -11,64 +12,59 @@ type Word struct {
 }
 
 func Top10(s string) []string {
-	result := make([]string, 0, 10)
-	m := make(map[string]uint)
-	var word []rune
-
 	if s == "" {
 		return nil
 	}
 
+	m := make(map[string]uint)
+	var word strings.Builder
+
 	for _, r := range s {
 		r = unicode.ToLower(r)
 
-		if unicode.IsSpace(r) || string(r) == "." {
-			if len(word) > 0 {
-				if string(word) != "-" {
-					m = addWordToMap(m, string(word))
-				}
-				word = nil
-			}
+		if unicode.IsSpace(r) || r == '.' {
+			word, m = addWordToMap(word, m)
 		} else {
-			word = append(word, r)
+			word.WriteRune(r)
 		}
 	}
 
-	m = addWordToMap(m, string(word))
-
-	words := make([]Word, 0, 100)
+	_, m = addWordToMap(word, m)
+	words := make([]Word, 0, len(m))
 
 	for k, v := range m {
 		words = append(words, Word{k, v})
 	}
 
-	sort.Slice(words, func(i, j int) bool {
-		if words[i].Count == words[j].Count {
-			return words[i].Value < words[j].Value
-		}
+	words = sortWords(words)
 
-		return words[i].Count > words[j].Count
-	})
-
-	for k, w := range words {
-		result = append(result, w.Value)
-
-		if k >= 9 {
-			break
-		}
+	result := make([]string, 0, 10)
+	for i := 0; i < len(words) && i < 10; i++ {
+		result = append(result, words[i].Value)
 	}
 
 	return result
 }
 
-func addWordToMap(m map[string]uint, w string) map[string]uint {
-	_, ok := m[w]
-
-	if ok {
-		m[w]++
-	} else {
-		m[w] = 1
+func addWordToMap(word strings.Builder, m map[string]uint) (strings.Builder, map[string]uint) {
+	if word.Len() > 0 {
+		w := word.String()
+		if w != "-" {
+			m[w]++
+		}
+		word.Reset()
 	}
 
-	return m
+	return word, m
+}
+
+func sortWords(words []Word) []Word {
+	sort.Slice(words, func(i, j int) bool {
+		if words[i].Count == words[j].Count {
+			return words[i].Value < words[j].Value
+		}
+		return words[i].Count > words[j].Count
+	})
+
+	return words
 }
