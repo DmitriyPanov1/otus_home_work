@@ -2,6 +2,7 @@ package hw03frequencyanalysis
 
 import (
 	"sort"
+	"unicode"
 )
 
 type Word struct {
@@ -10,7 +11,7 @@ type Word struct {
 }
 
 func Top10(s string) []string {
-	var result []string
+	result := make([]string, 0, 10)
 	m := make(map[string]uint)
 	var word []rune
 
@@ -19,12 +20,16 @@ func Top10(s string) []string {
 	}
 
 	for _, r := range s {
-		if (string(r) == " " || string(r) == "\n" || string(r) == "\t") && word != nil {
-			m = addWordToMap(m, string(word))
-			word = nil
-		}
+		r = unicode.ToLower(r)
 
-		if string(r) != " " && string(r) != "\n" && string(r) != "\t" {
+		if unicode.IsSpace(r) || string(r) == "." {
+			if len(word) > 0 {
+				if string(word) != "-" {
+					m = addWordToMap(m, string(word))
+				}
+				word = nil
+			}
+		} else {
 			word = append(word, r)
 		}
 	}
