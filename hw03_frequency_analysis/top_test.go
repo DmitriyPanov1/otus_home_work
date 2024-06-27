@@ -6,9 +6,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Change to true if needed.
-var taskWithAsteriskIsCompleted = false
-
 var text = `Как видите, он  спускается  по  лестнице  вслед  за  своим
 	другом   Кристофером   Робином,   головой   вниз,  пересчитывая
 	ступеньки собственным затылком:  бум-бум-бум.  Другого  способа
@@ -43,14 +40,18 @@ var text = `Как видите, он  спускается  по  лестни�
 	посидеть у огня и послушать какую-нибудь интересную сказку.
 		В этот вечер...`
 
-func TestTop10(t *testing.T) {
-	t.Run("no words in empty string", func(t *testing.T) {
-		require.Len(t, Top10(""), 0)
-	})
+var text2 = `Когда уникальных слов меньше десяти.
+	Уникальное слово — это слово, когда`
 
-	t.Run("positive test", func(t *testing.T) {
-		if taskWithAsteriskIsCompleted {
-			expected := []string{
+func TestTop10(t *testing.T) {
+	tests := []struct {
+		name     string
+		expected []string
+		input    string
+	}{
+		{
+			"positive test",
+			[]string{
 				"а",         // 8
 				"он",        // 8
 				"и",         // 6
@@ -61,22 +62,32 @@ func TestTop10(t *testing.T) {
 				"если",      // 4
 				"кристофер", // 4
 				"не",        // 4
-			}
-			require.Equal(t, expected, Top10(text))
-		} else {
-			expected := []string{
-				"он",        // 8
-				"а",         // 6
-				"и",         // 6
-				"ты",        // 5
-				"что",       // 5
-				"-",         // 4
-				"Кристофер", // 4
-				"если",      // 4
-				"не",        // 4
-				"то",        // 4
-			}
-			require.Equal(t, expected, Top10(text))
-		}
+			},
+			text,
+		},
+		{
+			"less than 10 words",
+			[]string{
+				"когда",      // 2
+				"слово",      // 2
+				"десяти",     // 1
+				"меньше",     // 1
+				"слов",       // 1
+				"уникальное", // 1
+				"уникальных", // 1
+				"это",
+			},
+			text2,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			require.Equal(t, tc.expected, Top10(tc.input))
+		})
+	}
+
+	t.Run("no words in empty string", func(t *testing.T) {
+		require.Len(t, Top10(""), 0)
 	})
 }
