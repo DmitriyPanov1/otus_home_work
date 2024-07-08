@@ -29,7 +29,7 @@ func (c *lruCache) Set(key Key, value interface{}) bool {
 		return true
 	}
 
-	if c.queue.Len() > c.capacity {
+	if c.queue.Len() >= c.capacity {
 		itemBack := c.queue.Back()
 
 		if itemBack != nil {
