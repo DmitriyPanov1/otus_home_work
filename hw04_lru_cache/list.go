@@ -100,8 +100,8 @@ func (l *list) MoveToFront(i *ListItem) {
 		return
 	}
 
-	l.PushFront(i.Value)
 	l.Remove(i)
+	l.PushFront(i.Value)
 }
 
 func NewList() List {
