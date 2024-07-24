@@ -18,27 +18,7 @@ func Run(tasks []Task, n, m int) error {
 	wg := sync.WaitGroup{}
 
 	for i := 0; i < n; i++ {
-		go func() {
-			select {
-			case <-doneCh:
-				close(errorCh)
-				return
-			default:
-				for task := range taskCh {
-					if task != nil {
-						err := task()
-						errorCh <- err
-						completedTasks++
-					}
-
-					if completedTasks >= len(tasks) {
-						close(errorCh)
-
-						return
-					}
-				}
-			}
-		}()
+		go worker(taskCh, errorCh, doneCh, &completedTasks, len(tasks))
 	}
 
 	go func() {
@@ -81,4 +61,26 @@ func Run(tasks []Task, n, m int) error {
 	}
 
 	return nil
+}
+
+func worker(taskCh <-chan Task, errorCh chan<- error, doneCh <-chan struct{}, completedTasks *int, totalTasks int) {
+	select {
+	case <-doneCh:
+		close(errorCh)
+		return
+	default:
+		for task := range taskCh {
+			if task != nil {
+				err := task()
+				errorCh <- err
+				*completedTasks++
+			}
+
+			if *completedTasks >= totalTasks {
+				close(errorCh)
+
+				return
+			}
+		}
+	}
 }
