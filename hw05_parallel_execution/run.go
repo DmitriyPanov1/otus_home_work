@@ -39,20 +39,12 @@ func Run(tasks []Task, n, m int) error {
 			close(doneCh)
 		}()
 
-		for {
-			select {
-			case err, ok := <-errorCh:
+		for err := range errorCh {
+			if err != nil {
+				errCount++
 
-				if !ok {
+				if errCount >= m {
 					return
-				}
-
-				if err != nil {
-					errCount++
-
-					if errCount >= m {
-						return
-					}
 				}
 			}
 		}
@@ -60,26 +52,7 @@ func Run(tasks []Task, n, m int) error {
 
 	for i := 0; i < n; i++ {
 		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for task := range taskCh {
-
-				select {
-				case <-doneCh:
-					return
-				default:
-				}
-
-				err := task()
-
-				if err != nil {
-					errorCh <- err
-				}
-			}
-
-			return
-
-		}()
+		go worker(taskCh, errorCh, doneCh, &wg)
 	}
 
 	wg.Wait()
@@ -93,24 +66,14 @@ func Run(tasks []Task, n, m int) error {
 	return nil
 }
 
-func worker(taskCh <-chan Task, errorCh chan<- error, doneCh <-chan struct{}, completedTasks *int, totalTasks int) {
-	select {
-	case <-doneCh:
-		close(errorCh)
-		return
-	default:
-		for task := range taskCh {
-			if task != nil {
-				err := task()
-				errorCh <- err
-				*completedTasks++
-			}
-
-			if *completedTasks >= totalTasks {
-				close(errorCh)
-
-				return
-			}
+func worker(taskCh <-chan Task, errorCh chan<- error, doneCh <-chan struct{}, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for task := range taskCh {
+		select {
+		case <-doneCh:
+			return
+		default:
+			errorCh <- task()
 		}
 	}
 }

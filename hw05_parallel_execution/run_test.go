@@ -68,7 +68,7 @@ func TestRun(t *testing.T) {
 		require.LessOrEqual(t, int64(elapsedTime), int64(sumTime/2), "tasks were run sequentially?")
 	})
 
-	t.Run("m is more than the count of errors in the tasks", func(t *testing.T) {
+	t.Run("complex", func(t *testing.T) {
 		tests := []struct {
 			name           string
 			workers        int
