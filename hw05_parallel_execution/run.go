@@ -16,7 +16,7 @@ func Run(tasks []Task, n, m int) error {
 	wg := sync.WaitGroup{}
 
 	if m == 0 {
-		return errors.New("m must be greater than 0")
+		return ErrErrorsLimitExceeded
 	}
 
 	go func() {

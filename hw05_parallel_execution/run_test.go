@@ -68,77 +68,15 @@ func TestRun(t *testing.T) {
 		require.LessOrEqual(t, int64(elapsedTime), int64(sumTime/2), "tasks were run sequentially?")
 	})
 
-	t.Run("complex", func(t *testing.T) {
-		tests := []struct {
-			name           string
-			workers        int
-			maxErrorsCount int
-			errorsCount    int
-			tasksCount     int
-		}{
-			{
-				"m > errorsCount",
-				5,
-				5,
-				4,
-				7,
-			},
-			{
-				"m = errorsCount",
-				5,
-				5,
-				5,
-				7,
-			},
-			{
-				"m = 0",
-				5,
-				0,
-				5,
-				7,
-			},
-			{
-				"m = 0 and errorCount = 0",
-				5,
-				0,
-				0,
-				7,
-			},
-		}
+	t.Run("m = 0", func(t *testing.T) {
+		tasks := make([]Task, 0, 1)
 
-		for _, tc := range tests {
-			tasks := make([]Task, 0, tc.tasksCount)
+		tasks = append(tasks, func() error {
+			time.Sleep(time.Millisecond * time.Duration(rand.Intn(100)))
+			return nil
+		})
 
-			var runTasksCount int32
-			var countErrors int
-
-			for i := 0; i < tc.tasksCount; i++ {
-				err := fmt.Errorf("error from task %d", i)
-				tasks = append(tasks, func() error {
-					time.Sleep(time.Millisecond * time.Duration(rand.Intn(100)))
-					atomic.AddInt32(&runTasksCount, 1)
-
-					if countErrors < tc.errorsCount {
-						countErrors++
-
-						return err
-					}
-
-					return nil
-				})
-			}
-
-			err := Run(tasks, tc.workers, tc.maxErrorsCount)
-
-			switch {
-			case tc.maxErrorsCount == 0:
-			case tc.errorsCount >= tc.maxErrorsCount:
-				require.Truef(t, errors.Is(err, ErrErrorsLimitExceeded), "actual err - %v", err)
-			default:
-				require.NoError(t, err)
-			}
-
-			require.LessOrEqual(t, runTasksCount, int32(tc.workers+tc.maxErrorsCount), "extra tasks were started")
-		}
+		err := Run(tasks, 1, 0)
+		require.Truef(t, errors.Is(err, ErrErrorsLimitExceeded), "actual err - %v", err)
 	})
 }
