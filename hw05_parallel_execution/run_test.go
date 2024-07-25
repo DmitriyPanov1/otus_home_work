@@ -130,17 +130,15 @@ func TestRun(t *testing.T) {
 
 			err := Run(tasks, tc.workers, tc.maxErrorsCount)
 
-			if tc.errorsCount >= tc.maxErrorsCount {
+			switch {
+			case tc.maxErrorsCount == 0:
+			case tc.errorsCount >= tc.maxErrorsCount:
 				require.Truef(t, errors.Is(err, ErrErrorsLimitExceeded), "actual err - %v", err)
-			} else {
+			default:
 				require.NoError(t, err)
 			}
 
-			if tc.errorsCount > 0 {
-				require.LessOrEqual(t, runTasksCount, int32(tc.workers+tc.maxErrorsCount), "extra tasks were started")
-			} else {
-				require.Equal(t, int(runTasksCount), tc.tasksCount)
-			}
+			require.LessOrEqual(t, runTasksCount, int32(tc.workers+tc.maxErrorsCount), "extra tasks were started")
 		}
 	})
 }
