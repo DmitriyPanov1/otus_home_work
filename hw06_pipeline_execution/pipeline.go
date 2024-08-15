@@ -13,6 +13,10 @@ func ExecutePipeline(in In, done In, stages ...Stage) Out {
 }
 
 func pipeline(in In, done In, stages ...Stage) Out {
+	if len(stages) == 0 {
+		return execute(in, done, func(in In) Out { return in })
+	}
+
 	for _, stage := range stages {
 		in = execute(in, done, stage)
 	}
