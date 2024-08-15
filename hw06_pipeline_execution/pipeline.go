@@ -14,26 +14,25 @@ func ExecutePipeline(in In, done In, stages ...Stage) Out {
 
 func pipeline(in In, done In, stages ...Stage) Out {
 	if len(stages) == 0 {
-		return execute(in, done, func(in In) Out { return in })
+		return execute(in, done)
 	}
 
 	for _, stage := range stages {
-		in = execute(in, done, stage)
+		in = stage(execute(in, done))
 	}
 
 	return in
 }
 
-func execute(in In, done In, stage Stage) Out {
+func execute(in In, done In) Out {
 	out := make(Bi)
 	go func() {
 		defer close(out)
-		stageOut := stage(in)
 		for {
 			select {
 			case <-done:
 				return
-			case v, ok := <-stageOut:
+			case v, ok := <-in:
 				if !ok {
 					return
 				}
