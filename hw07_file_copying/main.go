@@ -2,6 +2,8 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"os"
 )
 
 var (
@@ -18,5 +20,16 @@ func init() {
 
 func main() {
 	flag.Parse()
-	// Place your code here.
+
+	if from == "" || to == "" {
+		fmt.Println("Ошибка: используйте специальные флаги -from и -to")
+		flag.Usage()
+		os.Exit(1)
+	}
+
+	err := Copy(from, to, offset, limit)
+	if err != nil {
+		fmt.Printf("Ошибка: %v\n", err)
+		os.Exit(1)
+	}
 }
